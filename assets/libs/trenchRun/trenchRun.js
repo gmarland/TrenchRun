@@ -28,9 +28,9 @@
 
         var _trenchRun = new THREE.Object3D();
 
-        var _trenchLength = 300,
-            _trenchWidth = 150,
-            _trenchHeight = 115;
+        var _trenchLength = 1600,
+            _trenchWidth = 160,
+            _trenchHeight = 120;
 
         var _distance = (_trenchLength/2);
 
@@ -81,7 +81,7 @@
         }
         
         function createTrenchGrid() {
-            var step = 5;
+            var step = 20;
 
             function createHorizontalGrid(width, length) {
                 var gridGeometry = new THREE.Geometry();
@@ -155,15 +155,13 @@
 
             _trenchRun.add(third);
 
-            _trenchRun.position.z -= (_trenchLength/2);
+            _trenchRun.position.z -= _trenchLength + (_trenchLength/2);
 
             _scene.add(_trenchRun);
         }
 
         function createCamera() {
-            var far = ((_sceneRadius + (_sceneRadius / 2)) * 2);
-
-            _camera = new THREE.PerspectiveCamera(75, (window.innerWidth / window.innerHeight), 0.1, far);
+            _camera = new THREE.PerspectiveCamera(75, (window.innerWidth / window.innerHeight), 0.1, _trenchLength/2);
 
             _controls = new THREE.FirstPersonControls(_scene, _camera);
             _controls.setCameraPosition(0, 20, 0);
@@ -187,11 +185,24 @@
 
         // ********** Rendering Methods
 
+        function animateScene(delta) {
+            var speed = 2;
+
+            _trenchRun.position.z -= speed;
+            _distance += speed;
+
+            if ((_distance % _trenchLength) === 0) {
+                _trenchRun.position.z += _trenchLength;
+            }
+        }
+
         function startRendering() {
             var that = this;
 
             var renderScene = function () {
                 requestAnimationFrame(renderScene);
+
+                animateScene(_clock.getDelta());
 
                 _controls.update(_clock.getDelta());
 
@@ -200,7 +211,7 @@
 
             renderScene();
         }
-        
+
         // =====  Public Methods
 
         return {

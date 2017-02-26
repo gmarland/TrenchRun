@@ -83,7 +83,7 @@ THREE.FirstPersonControls = function (scene, camera) {
     };
 
     this.update = function (delta) {
-        if (!this._shiftPressed) {
+        if (this._shiftPressed) {
             if (this._moveUp) this._yawObject.translateZ(-this._movementSpeed);
             if (this._moveDown) this._yawObject.translateZ(this._movementSpeed);
             if (this._moveLeft) this._yawObject.translateX(-this._movementSpeed);
