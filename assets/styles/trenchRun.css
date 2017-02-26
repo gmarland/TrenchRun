@@ -1,0 +1,24 @@
+#meeting-container {
+	position: relative;
+	width: 100%;
+	height: 100%;
+}
+
+.url-container {
+	position:relative;
+	width:1000px;
+	height:800px;
+	background-color: #ffffff;
+}
+
+.url-container .board-bar {
+	background-color: #ffffff;
+}
+
+.url-container .board-bar .board-button {
+	padding: 10px;
+	background-color: #000000;
+	color: #ffffff;
+	font-weight: bold;
+	cursor: pointer;
+}
