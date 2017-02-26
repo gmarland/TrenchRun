@@ -72,6 +72,7 @@
 
         function setupScene() {
             createTrenchRun();
+            createBlock();
 
             createCamera();
 
@@ -138,7 +139,7 @@
             trench.add(right);
 
             return trench;
-        };
+        }
         
         function createTrenchRun() {
             var first = createTrenchGrid(),
@@ -210,6 +211,12 @@
             };
 
             renderScene();
+        }
+        
+        function createBlock() {
+            var block = new window.TrenchRun.Block(100, _trenchWidth, _trenchHeight, _skyboxColor, "right", 2);
+
+            _scene.add(block.create());
         }
 
         // =====  Public Methods
