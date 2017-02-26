@@ -1,5 +1,7 @@
 (function () {
     var Block = function (startZ, trenchWidth, trenchHeight, backgroundColor, position, ratio) {
+        var block = null;
+
         function createBlock(blockWidth, blockHeight) {
             var blockObject = new THREE.Object3D();
 
@@ -24,31 +26,42 @@
         }
 
         return {
+            animate: function(movement) {
+                if (block) block.position.z -= movement;
+            },
+
+            shouldDestroy: function(removeAt) {
+                if (block.position.z < (removeAt*-1)) return true;
+                else return false;
+            },
+
+            get: function() {
+                return block;
+            },
+
         	create: function() {
                 switch (position.toLowerCase()) {
                     case "top":
-                        var topBlock = createBlock(trenchWidth, (trenchHeight/ratio));
-                        topBlock.position.y += trenchHeight-((trenchHeight/ratio)/2);
-
-                        return topBlock;
+                        block = createBlock(trenchWidth, (trenchHeight/ratio));
+                        block.position.y += trenchHeight-((trenchHeight/ratio)/2);
+                        break;
                     case "bottom":
-                        var bottomBlock = createBlock(trenchWidth, (trenchHeight/ratio));
-                        bottomBlock.position.y += ((trenchHeight/ratio)/2);
-
-                        return bottomBlock;
+                        block = createBlock(trenchWidth, (trenchHeight/ratio));
+                        block.position.y += ((trenchHeight/ratio)/2);
+                        break;
                     case "left":
-                        var leftBlock = createBlock((trenchWidth/ratio), trenchHeight);
-                        leftBlock.position.y += (trenchHeight/2);
-                        leftBlock.position.x += (trenchWidth/2)-((trenchWidth/ratio)/2);
-
-                        return leftBlock;
+                        block = createBlock((trenchWidth/ratio), trenchHeight);
+                        block.position.y += (trenchHeight/2);
+                        block.position.x += (trenchWidth/2)-((trenchWidth/ratio)/2);
+                        break;
                     case "right":
-                        var rightBlock = createBlock((trenchWidth/ratio), trenchHeight);
-                        rightBlock.position.y += (trenchHeight/2);
-                        rightBlock.position.x -= (trenchWidth/2)-((trenchWidth/ratio)/2);
-
-                        return rightBlock;
+                        block = createBlock((trenchWidth/ratio), trenchHeight);
+                        block.position.y += (trenchHeight/2);
+                        block.position.x -= (trenchWidth/2)-((trenchWidth/ratio)/2);
+                        break;
                 }
+
+                return block;
         	}
         }
     };

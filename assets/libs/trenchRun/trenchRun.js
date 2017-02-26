@@ -6,6 +6,8 @@
 
         var _container = document.getElementById(containerName);
 
+        var _trenchBlock = window.TrenchRun.Block;
+
         // ---- initialize parameters
 
         var _skyboxColor = "#1A9EC9";
@@ -28,11 +30,25 @@
 
         var _trenchRun = new THREE.Object3D();
 
-        var _trenchLength = 1600,
+        var _trenchLength = 1500,
             _trenchWidth = 160,
             _trenchHeight = 120;
 
         var _distance = (_trenchLength/2);
+
+        var _blocks = [];
+        
+        var _closestBlock = 300;
+        var _closestBlockOffset = 10;
+
+        var _lastCreated = 0;
+        var _blocksCreated = 0;
+        
+        var _level = 1;
+        var _levelAt = 5
+
+        var _positions = [ "top", "bottom", "left", "right" ];
+        var _dimensions = [ 2, 3, 4 ];
 
         // ********** Start Methods
 
@@ -72,7 +88,6 @@
 
         function setupScene() {
             createTrenchRun();
-            createBlock();
 
             createCamera();
 
@@ -160,6 +175,20 @@
 
             _scene.add(_trenchRun);
         }
+        
+        function createBlock() {
+            var dimension;
+
+            if (_blocksCreated < 10) dimension = 4;
+            else if (_blocksCreated < 20) dimension = _dimensions[getRandomInt(1,2)] 
+            else dimension = _dimensions[getRandomInt(0,2)];
+
+            var block = new _trenchBlock(((_trenchLength/2)+50), _trenchWidth, _trenchHeight, _skyboxColor, _positions[getRandomInt(0,3)], dimension);
+
+            _scene.add(block.create());
+
+            return block;
+        }
 
         function createCamera() {
             _camera = new THREE.PerspectiveCamera(75, (window.innerWidth / window.innerHeight), 0.1, _trenchLength/2);
@@ -184,16 +213,52 @@
             };
         }
 
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
         // ********** Rendering Methods
 
         function animateScene(delta) {
-            var speed = 2;
+            var speed = 3;
 
             _trenchRun.position.z -= speed;
             _distance += speed;
 
             if ((_distance % _trenchLength) === 0) {
                 _trenchRun.position.z += _trenchLength;
+            }
+
+            for (var i=(_blocks.length-1); i>=0; i--) {
+                _blocks[i].animate(speed);
+
+                if (_blocks[i].shouldDestroy((_trenchLength/2)+50)) {
+                    _scene.remove(_blocks[i].get());
+                    _blocks.splice(i, 1);
+                }
+            }
+        }
+
+        function determineBlockCreate(delta) {
+            if (((delta % 10) === 0) && (_lastCreated > _closestBlock)) {
+                _blocks.push(createBlock());
+
+                _lastCreated = 0;
+                _blocksCreated++;
+            }
+            else _lastCreated++;
+
+            if ((_blocksCreated > 0) && (_blocksCreated >= (_level*_levelAt)) && ((_blocksCreated % _levelAt) === 0)) {
+                _level++;
+                _closestBlock -= _closestBlockOffset;
+
+                // little hacky to help make level 3 not require 15 blocks
+                if (_level == 3) {
+                    _blocksCreated = 20;
+                    _levelAt = 10;
+                }
+
+                if (_level == 5) _closestBlockOffset = 20;
             }
         }
 
@@ -204,6 +269,7 @@
                 requestAnimationFrame(renderScene);
 
                 animateScene(_clock.getDelta());
+                determineBlockCreate(_clock.getDelta());
 
                 _controls.update(_clock.getDelta());
 
@@ -211,12 +277,6 @@
             };
 
             renderScene();
-        }
-        
-        function createBlock() {
-            var block = new window.TrenchRun.Block(100, _trenchWidth, _trenchHeight, _skyboxColor, "right", 2);
-
-            _scene.add(block.create());
         }
 
         // =====  Public Methods
