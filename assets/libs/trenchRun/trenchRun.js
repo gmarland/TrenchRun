@@ -83,9 +83,10 @@
         function createTrenchGrid() {
             var step = 20;
 
+            var gridMaterial = new THREE.LineBasicMaterial( { color: 0xFFFFFF, opacity: 0.7, transparent: true } );
+
             function createHorizontalGrid(width, length) {
                 var gridGeometry = new THREE.Geometry();
-                var gridMaterial = new THREE.LineBasicMaterial( { color: 0xFFFFFF } );
 
                 for (var i=0; i<=(length/step); i++) {  
                     gridGeometry.vertices.push(new THREE.Vector3(width, 0, (i*step)));
@@ -106,7 +107,6 @@
 
             function createVerticalGrid(height, length) {
                 var gridGeometry = new THREE.Geometry();
-                var gridMaterial = new THREE.LineBasicMaterial( { color: 0xFFFFFF } );
 
                 for (var i=0; i<=(length/step); i++) {
                     gridGeometry.vertices.push(new THREE.Vector3(0, 0, (i*step)));
