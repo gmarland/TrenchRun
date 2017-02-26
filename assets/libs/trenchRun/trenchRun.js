@@ -250,7 +250,8 @@
 
             if ((_blocksCreated > 0) && (_blocksCreated >= (_level*_levelAt)) && ((_blocksCreated % _levelAt) === 0)) {
                 _level++;
-                _closestBlock -= _closestBlockOffset;
+
+                if (_closestBlock > 0) _closestBlock -= _closestBlockOffset;
 
                 // little hacky to help make level 3 not require 15 blocks
                 if (_level == 3) {
