@@ -1,4 +1,4 @@
-THREE.FirstPersonControls = function (scene, camera) {
+THREE.FirstPersonControls = function (scene, camera, height, width) {
     var that = this;
 
     this._movementSpeed = 3;
@@ -29,50 +29,44 @@ THREE.FirstPersonControls = function (scene, camera) {
     this.onKeyDown = function (event) {
         event.preventDefault();
 
-        if (event.key.toLowerCase() == "shift") this._shiftPressed = true;
-        else {
-            switch (event.keyCode) {
-                case 38: /*up*/
-                case 87: /*W*/ 
-                    this._moveUp = true; 
-                    break;
-                case 37: /*left*/
-                case 65: /*A*/ 
-                    this._moveLeft = true; 
-                    break;
-                case 40: /*down*/
-                case 83: /*S*/ 
-                    this._moveDown = true;
-                    break;
-                case 39: /*right*/
-                case 68: /*D*/ 
-                    this._moveRight = true;
-                    break;
-            }
+        switch (event.keyCode) {
+            case 38: /*up*/
+            case 87: /*W*/ 
+                this._moveUp = true; 
+                break;
+            case 37: /*left*/
+            case 65: /*A*/ 
+                this._moveLeft = true; 
+                break;
+            case 40: /*down*/
+            case 83: /*S*/ 
+                this._moveDown = true;
+                break;
+            case 39: /*right*/
+            case 68: /*D*/ 
+                this._moveRight = true;
+                break;
         }
     };
 
     this.onKeyUp = function (event) {
-        if (event.key.toLowerCase() == "shift") this._shiftPressed = false;
-        else {
-            switch (event.keyCode) {
-                case 38: /*up*/
-                case 87: /*W*/
-                    this._moveUp = false; 
-                    break;
-                case 37: /*left*/
-                case 65: /*A*/ 
-                    this._moveLeft = false; 
-                    break;
-                case 40: /*down*/
-                case 83: /*S*/ 
-                    this._moveDown = false; 
-                    break;
-                case 39: /*right*/
-                case 68: /*D*/ 
-                    this._moveRight = false; 
-                    break;
-            }
+        switch (event.keyCode) {
+            case 38: /*up*/
+            case 87: /*W*/
+                this._moveUp = false; 
+                break;
+            case 37: /*left*/
+            case 65: /*A*/ 
+                this._moveLeft = false; 
+                break;
+            case 40: /*down*/
+            case 83: /*S*/ 
+                this._moveDown = false; 
+                break;
+            case 39: /*right*/
+            case 68: /*D*/ 
+                this._moveRight = false; 
+                break;
         }
     };
 
@@ -83,27 +77,60 @@ THREE.FirstPersonControls = function (scene, camera) {
     };
 
     this.update = function (delta) {
-        if (this._shiftPressed) {
-            if (this._moveUp) this._yawObject.translateZ(-this._movementSpeed);
-            if (this._moveDown) this._yawObject.translateZ(this._movementSpeed);
-            if (this._moveLeft) this._yawObject.translateX(-this._movementSpeed);
-            if (this._moveRight) this._yawObject.translateX(this._movementSpeed);
-        }
-        else {
-            var currentRotationX = this._pitchObject.rotation.x,
-                currentRotationY = this._yawObject.rotation.y;
+        var center = 3.14159;
 
-            if (this._moveUp) currentRotationX += this._rotationSpeed;
-            if (this._moveLeft) currentRotationY += this._rotationSpeed;
-            if (this._moveDown) currentRotationX -= this._rotationSpeed;
-            if (this._moveRight) currentRotationY -= this._rotationSpeed;
-            
-            var currentRotationX = currentRotationX % 6.28319;
-            var currentRotationY = currentRotationY % 6.28319;
+        var currentRotationX = this._pitchObject.rotation.x,
+            currentRotationY = this._yawObject.rotation.y;
 
-            this._pitchObject.rotation.x = currentRotationX;
-            this._yawObject.rotation.y = currentRotationY;
-        }
+        if (this._moveUp) currentRotationX += this._rotationSpeed;
+        if (this._moveLeft) currentRotationY += this._rotationSpeed;
+        if (this._moveDown) currentRotationX -= this._rotationSpeed;
+        if (this._moveRight) currentRotationY -= this._rotationSpeed;
+        
+        if ((currentRotationX < 1.5708) && (currentRotationX > -1.5708))  this._pitchObject.rotation.x = currentRotationX;
+
+        if (currentRotationY > 0) currentRotationY = currentRotationY % 6.28319;
+        else currentRotationY = currentRotationY % -6.28319;
+
+        if ((currentRotationY < (center+2.96706)) && (currentRotationY > (center-2.96706))) this._yawObject.rotation.y = currentRotationY;
+
+        var newYPosition = this._yawObject.position.y;
+
+        if ((this._pitchObject.rotation.x > 0.7)) newYPosition += 8;
+        else if ((this._pitchObject.rotation.x < -0.7)) newYPosition -= 8;
+        else if ((this._pitchObject.rotation.x > 0.5)) newYPosition += 3;
+        else if ((this._pitchObject.rotation.x < -0.5)) newYPosition -= 3;
+        else if ((this._pitchObject.rotation.x > 0.3)) newYPosition += 1;
+        else if ((this._pitchObject.rotation.x < -0.3)) newYPosition -= 1;
+        else if ((this._pitchObject.rotation.x > 0.2)) newYPosition += 0.5;
+        else if ((this._pitchObject.rotation.x < -0.2)) newYPosition -= 0.5;
+        else if ((this._pitchObject.rotation.x > 0.14)) newYPosition += 0.2;
+        else if ((this._pitchObject.rotation.x < -0.14)) newYPosition -= 0.2;
+
+        if (newYPosition <= 0) newYPosition = 1;
+        else if (newYPosition >= height) newYPosition = height-1;
+
+        this._yawObject.position.y = newYPosition;
+
+        var newXPosition = this._yawObject.position.x;
+
+        var center = 3.14159;
+
+        if ((this._yawObject.rotation.y > center+0.7)) newXPosition += 8;
+        else if ((this._yawObject.rotation.y < center-0.7)) newXPosition -= 8;
+        else if ((this._yawObject.rotation.y > center+0.5)) newXPosition += 3;
+        else if ((this._yawObject.rotation.y < center-0.5)) newXPosition -= 3;
+        else if ((this._yawObject.rotation.y > center+0.3)) newXPosition += 1;
+        else if ((this._yawObject.rotation.y < center-0.3)) newXPosition -= 1;
+        else if ((this._yawObject.rotation.y > center+0.2)) newXPosition += 0.5;
+        else if ((this._yawObject.rotation.y < center-0.2)) newXPosition -= 0.5;
+        else if ((this._yawObject.rotation.y > center+0.14)) newXPosition += 0.2;
+        else if ((this._yawObject.rotation.y < center-0.14)) newXPosition -= 0.2;
+
+        if (newXPosition <= ((width/2)*-1)) newXPosition = ((width/2)*-1)+1;
+        else if (newXPosition >= (width/2)) newXPosition = (width/2)-1;
+
+        this._yawObject.position.x = newXPosition;
     };
 
     this.cancelAllMovement = function () {

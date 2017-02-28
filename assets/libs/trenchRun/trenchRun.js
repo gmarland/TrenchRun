@@ -6,6 +6,7 @@
 
         var _container = document.getElementById(containerName);
 
+        var _trench = window.TrenchRun.Trench;
         var _trenchBlock = window.TrenchRun.Block;
 
         // ---- initialize parameters
@@ -47,7 +48,7 @@
         var _level = 1;
         var _levelAt = 5
 
-        var _positions = [ "top", "bottom", "left", "right" ];
+        var _positions = [ "top", "bottom", "left", "right", "topLeft", "topRight", "bottomLeft", "bottomRight", "center" ];
         var _dimensions = [ 2, 3, 4 ];
 
         // ********** Start Methods
@@ -96,70 +97,12 @@
             startRendering();
         }
         
-        function createTrenchGrid() {
-            var step = 20;
-
-            var gridMaterial = new THREE.LineBasicMaterial( { color: 0xFFFFFF, opacity: 0.7, transparent: true } );
-
-            function createHorizontalGrid(width, length) {
-                var gridGeometry = new THREE.Geometry();
-
-                for (var i=0; i<=(length/step); i++) {  
-                    gridGeometry.vertices.push(new THREE.Vector3(width, 0, (i*step)));
-                    gridGeometry.vertices.push(new THREE.Vector3(0, 0, (i*step)));
-                }
-
-                for (var i=0; i<=(width/step); i++) {
-                    gridGeometry.vertices.push(new THREE.Vector3((i*step), 0, (length)));
-                    gridGeometry.vertices.push(new THREE.Vector3((i*step), 0, 0));
-                }
-
-                var grid = new THREE.LineSegments(gridGeometry, gridMaterial);
-
-                grid.position.x -= (width/2);
-
-                return grid;
-            }
-
-            function createVerticalGrid(height, length) {
-                var gridGeometry = new THREE.Geometry();
-
-                for (var i=0; i<=(length/step); i++) {
-                    gridGeometry.vertices.push(new THREE.Vector3(0, 0, (i*step)));
-                    gridGeometry.vertices.push(new THREE.Vector3(0, height, (i*step)));
-                }
-
-                for (var i=0; i<=(height/step); i++) {
-                    gridGeometry.vertices.push(new THREE.Vector3(0, (i*step), 0));
-                    gridGeometry.vertices.push(new THREE.Vector3(0, (i*step), length));
-                }
-
-                var grid = new THREE.LineSegments(gridGeometry, gridMaterial);
-
-                return grid;
-            }
-
-            var trench = new THREE.Object3D();
-
-            var base = createHorizontalGrid(_trenchWidth, _trenchLength);
-
-            var left = createVerticalGrid(_trenchHeight, _trenchLength);
-            left.position.x -= (_trenchWidth/2);
-
-            var right = createVerticalGrid(_trenchHeight, _trenchLength);
-            right.position.x += (_trenchWidth/2);
-
-            trench.add(base);
-            trench.add(left);
-            trench.add(right);
-
-            return trench;
-        }
-        
         function createTrenchRun() {
-            var first = createTrenchGrid(),
-                second = createTrenchGrid(),
-                third = createTrenchGrid();
+            var trench = new _trench(_trenchLength, _trenchWidth, _trenchHeight);
+
+            var first = trench.create(),
+                second = trench.create(),
+                third = trench.create();
 
             _trenchRun.add(first);
 
@@ -177,13 +120,31 @@
         }
         
         function createBlock() {
-            var dimension;
+            var position, dimension;
 
-            if (_blocksCreated < 10) dimension = 4;
-            else if (_blocksCreated < 20) dimension = _dimensions[getRandomInt(1,2)] 
-            else dimension = _dimensions[getRandomInt(0,2)];
+            if (_level <= 3) position = _positions[getRandomInt(0,3)];
+            else if (_level <= 4) position = _positions[getRandomInt(0,7)];
+            else if (_level <= 6) position = _positions[getRandomInt(0,7)];
+            else position = _positions[getRandomInt(0,8)];
 
-            var block = new _trenchBlock(((_trenchLength/2)+50), _trenchWidth, _trenchHeight, _skyboxColor, _positions[getRandomInt(0,3)], dimension);
+            if (position != "center") {
+                if (_blocksCreated < 10) {
+                    dimension = 4;
+                }
+                else if ((_blocksCreated < 20) || 
+                        (((position.toLowerCase() == "topleft") || (position.toLowerCase() == "topright") || (position.toLowerCase() == "bottomleft") || (position.toLowerCase() == "bottomright")) && (_level <= 5))) {
+                    dimension = _dimensions[getRandomInt(1,2)] 
+                }
+                else {
+                    dimension = _dimensions[getRandomInt(0,2)];
+                }
+            }
+            else {
+                if (_level <= 6) dimension = _dimensions[2];
+                else dimension = _dimensions[getRandomInt(1,2)];
+            }
+
+            var block = new _trenchBlock(((_trenchLength/2)+50), _trenchWidth, _trenchHeight, _skyboxColor, position, dimension);
 
             _scene.add(block.create());
 
@@ -193,7 +154,7 @@
         function createCamera() {
             _camera = new THREE.PerspectiveCamera(75, (window.innerWidth / window.innerHeight), 0.1, _trenchLength/2);
 
-            _controls = new THREE.FirstPersonControls(_scene, _camera);
+            _controls = new THREE.FirstPersonControls(_scene, _camera, _trenchHeight, _trenchWidth);
             _controls.setCameraPosition(0, 20, 0);
         }
 
