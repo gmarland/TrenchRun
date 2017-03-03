@@ -9,7 +9,9 @@
 		<META NAME="ROBOTS" CONTENT="NOINDEX, NOFOLLOW">
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   		<script type="text/javascript" src="libs/three.min.js"></script>
-  		<script type="text/javascript" src="libs/trenchRun/first-person-controls.js"></script>
+  		<script type="text/javascript" src="libs/StereoEffect.js"></script>
+  		<script type="text/javascript" src="libs/DeviceOrientationControls.js"></script>
+  		<script type="text/javascript" src="libs/NoSleep.min.js"></script>
   		<script type="text/javascript" src="libs/trenchRun/trenchRun.js"></script>
   		<script type="text/javascript" src="libs/trenchRun/trenchRun.trench.js"></script>
   		<script type="text/javascript" src="libs/trenchRun/trenchRun.block.js"></script>
@@ -18,8 +20,16 @@
 	</head>
 	<body>
 		<div id="trenchRun-container"></div>
+		<div id="overlay">
+			<div id="fullscreen-container" onclick="setFullScreen()"><img src="images/vr.svg" /></div>
+		<div id="positon"></div>
+		</div>
 		<script type="text/javascript">
 			var TrenchRun = new window.TrenchRun("trenchRun-container");
+
+			function setFullScreen() {
+				TrenchRun.setFullscreen();
+			}
 		</script>
 	</body>
 </html>

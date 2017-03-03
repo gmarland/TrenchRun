@@ -6,6 +6,8 @@
 
         var _container = document.getElementById(containerName);
 
+        var _noSleep = new NoSleep();
+
         var _trench = window.TrenchRun.Trench;
         var _trenchBlock = window.TrenchRun.Block;
 
@@ -19,6 +21,7 @@
         var _scene = null;
 
         var _renderer = null;
+        var _effect = null;
 
         var _clock = null;
 
@@ -27,7 +30,14 @@
         var _camera = null;
         var _controls = null;
 
+        var _targetingMesh = null;
+
+        var _raycaster = new THREE.Raycaster();
+
         // ----- scene elements
+
+        var _fullscreen = false;
+        var _gameStarted = false;
 
         var _trenchRun = new THREE.Object3D();
 
@@ -77,12 +87,17 @@
             var skyboxColor = new THREE.Color(_skyboxColor);
             var skyboxOpacity = 1;
 
-            _renderer = new THREE.WebGLRenderer({alpha:true});
+            _renderer = new THREE.WebGLRenderer({
+                antialias: true,
+                alpha: true
+            });
 
             _renderer.setSize(window.innerWidth, window.innerHeight);
             _renderer.setClearColor(skyboxColor);
 
             _container.appendChild(_renderer.domElement);
+
+            _effect = new THREE.StereoEffect(_renderer);
         }
 
         // ********** Create scene methods
@@ -154,8 +169,26 @@
         function createCamera() {
             _camera = new THREE.PerspectiveCamera(75, (window.innerWidth / window.innerHeight), 0.1, _trenchLength/2);
 
-            _controls = new THREE.FirstPersonControls(_scene, _camera, _trenchHeight, _trenchWidth);
-            _controls.setCameraPosition(0, 20, 0);
+            _camera.rotation.y = 3.14159;
+            _camera.position.y = 20;
+
+            _targetingMesh = getTargetingMesh();
+
+            _scene.add(_targetingMesh);
+        }
+
+        function getTargetingMesh() {
+            var geometry = new THREE.PlaneBufferGeometry((_trenchWidth*2), (_trenchHeight*2));
+
+            var targetingMesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ 
+                visible: false
+            }));
+
+            targetingMesh.position.z = 10;
+            targetingMesh.position.y = _trenchHeight;
+            targetingMesh.rotation.y = 3.14159;
+
+            return targetingMesh;
         }
 
         function bindEvents() {
@@ -169,9 +202,12 @@
                 _camera.updateProjectionMatrix();
             }, false);
 
-            window.onblur = function () {
-                _controls.cancelAllMovement();
-            };
+            function exitFullscreen() {
+                if (!document.webkitIsFullScreen) _fullscreen = false;
+            }
+
+            document.addEventListener('webkitfullscreenchange', exitFullscreen, false);
+            document.addEventListener('fullscreenchange', exitFullscreen, false);
         }
 
         function getRandomInt(min, max) {
@@ -224,6 +260,26 @@
             }
         }
 
+        function updateCameraPosition() {
+            _raycaster.set( _camera.getWorldPosition(), _camera.getWorldDirection() );
+
+            var intersects = _raycaster.intersectObject(_targetingMesh);
+
+            if (intersects.length > 0) {
+                if (intersects[0].point.y - _camera.getWorldPosition().y > 2) _camera.position.y += 0.75;
+                else if (intersects[0].point.y - _camera.getWorldPosition().y < -2) _camera.position.y -= 0.75;
+
+                if(_camera.position.y > _trenchHeight) _camera.position.y = (_trenchHeight-1);
+                if(_camera.position.y < 0) _camera.position.y = 1;
+
+                if (intersects[0].point.x - _camera.getWorldPosition().x > 2) _camera.position.x += 0.75;
+                else if (intersects[0].point.x - _camera.getWorldPosition().x < -2) _camera.position.x -= 0.75;
+
+                if(_camera.position.x > (_trenchHeight/2)) _camera.position.x = ((_trenchHeight/2)-1);
+                if(_camera.position.x < ((_trenchHeight/2)*-1)) _camera.position.x = ((_trenchHeight/2)*-1)+1;
+            }
+        }
+
         function startRendering() {
             var that = this;
 
@@ -231,19 +287,43 @@
                 requestAnimationFrame(renderScene);
 
                 animateScene(_clock.getDelta());
-                determineBlockCreate(_clock.getDelta());
 
-                _controls.update(_clock.getDelta());
+                if (_gameStarted) determineBlockCreate(_clock.getDelta());
 
-                _renderer.render(_scene, _camera);
+                if(_controls) {
+                    _controls.update();
+                }
+
+                updateCameraPosition();
+
+                if (_fullscreen) {
+                    _effect.render(_scene, _camera);
+                }
+                else _renderer.render(_scene, _camera);
             };
 
             renderScene();
         }
 
+        function fullscreen() {
+            if (_container.requestFullscreen) _container.requestFullscreen();
+            else if (_container.msRequestFullscreen) _container.msRequestFullscreen();
+            else if (_container.mozRequestFullScreen) _container.mozRequestFullScreen();
+            else if (_container.webkitRequestFullscreen) _container.webkitRequestFullscreen();
+
+            _controls = new THREE.DeviceOrientationControls(_camera);
+
+            _fullscreen = true;
+
+            _noSleep.enable();
+        }
+
         // =====  Public Methods
 
         return {
+            setFullscreen: function() {
+                fullscreen();
+            }
         }
     };
 
